@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 
 import { createPortal } from "react-dom";
@@ -6,45 +6,47 @@ import styles from "./Modal.module.css";
 
 const modalRoot = document.querySelector("#modal-root");
 
-export default class Modal extends Component {
-  componentDidMount() {
-    console.log("Modal componentDidMount");
-    window.addEventListener("keydown", this.handleKeyDown);
-  }
+const Modal = ({ largeImageURL, onClose }) => {
+  const [isShowModal, setIsShowModal] = useState(true);
 
-  componentWillUnmount() {
-    console.log("Modal componentWillUnmount");
-    window.removeEventListener("keydown", this.handleKeyDown);
-  }
+  useEffect(() => {
+    console.log("Modal useEffect");
 
-  handleKeyDown = (e) => {
-    if (e.code === "Escape") {
-      console.log("Enter ESC, Modal close");
-
-      this.props.onClose();
+    if (isShowModal) {
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      window.removeEventListener("keydown", handleKeyDown);
     }
-  };
+  }, [isShowModal]);
 
-  handleBackdropClick = (event) => {
+  const handleBackdropClick = (event) => {
     console.log("currentTarget: ", event.currentTarget);
     console.log("target: ", event.target);
 
     if (event.currentTarget === event.target) {
-      this.props.onClose();
+      onClose();
+      setIsShowModal(false);
     }
   };
 
-  render() {
-    return createPortal(
-      <div className={styles.overlay} onClick={this.handleBackdropClick}>
-        <div className={styles.modal}>
-          <img src={this.props.largeImageURL} alt="" />
-        </div>
-      </div>,
-      modalRoot
-    );
-  }
-}
+  const handleKeyDown = (event) => {
+    if (event.code === "Escape") {
+      console.log("Enter ESC, Modal close");
+
+      onClose();
+      setIsShowModal(false);
+    }
+  };
+
+  return createPortal(
+    <div className={styles.overlay} onClick={handleBackdropClick}>
+      <div className={styles.modal}>
+        <img src={largeImageURL} alt="" />
+      </div>
+    </div>,
+    modalRoot
+  );
+};
 
 Modal.defaultProps = {
   largeImageURL: "",
@@ -53,3 +55,5 @@ Modal.defaultProps = {
 Modal.propTypes = {
   largeImageURL: PropTypes.string,
 };
+
+export default Modal;

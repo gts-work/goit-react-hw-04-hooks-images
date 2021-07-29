@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import LoaderItem from "react-loader-spinner";
+import React, { Component, useState, useEffect } from "react";
 
 import Container from "./components/Container";
 import Searchbar from "./components/Searchbar";
@@ -10,120 +9,102 @@ import Modal from "./components/Modal";
 
 import pixabayApi from "./services/pixabay-api";
 
-export default class App extends Component {
-  state = {
-    images: [],
-    searchQuery: "",
-    currentPage: 1,
-    largeImageURL: "",
-    isLoading: false,
-    totalImages: 0,
-    showModal: false,
-    isLoadMore: false,
-    error: null,
-  };
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [largeImageURL, setLargeImageURL] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalImages, setTotalImages] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoadMore, setIsLoadMore] = useState(false);
+  const [error, setError] = useState(null);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.searchQuery !== this.state.searchQuery) {
-      this.fetchImages();
-    }
-  }
+  useEffect(() => {
+    console.log("useEffect ~ useEffect: ", searchQuery);
 
-  fetchImages = () => {
-    const { currentPage, searchQuery } = this.state;
+    if (searchQuery) fetchImages();
+  }, [searchQuery]);
+
+  const fetchImages = () => {
     const options = { searchQuery, currentPage };
-    // console.log("App ~ options: ", options);
+    console.log("App ~ options: ", options);
 
-    this.setState({ isLoading: true });
+    setIsLoading(true);
 
     pixabayApi
       .fetchImages(options)
       .then((data) => {
-        console.log("APP pixabayApi ~ data: ", data);
+        // console.log("APP pixabayApi ~ data: ", data);
 
         const imagesQuery = data.hits;
         const totalImages = data.total;
-        this.setState((prevState) => ({
-          images: [...prevState.images, ...imagesQuery],
-          totalImages: totalImages,
-          currentPage: prevState.currentPage + 1,
-        }));
-        this.setState({ error: "" });
 
-        if (this.state.isLoadMore) {
+        setImages([...images, ...imagesQuery]);
+        setTotalImages(totalImages);
+        setCurrentPage(currentPage + 1);
+        setError("");
+
+        if (isLoadMore) {
           window.scrollTo({
             top: document.documentElement.scrollHeight,
             behavior: "smooth",
           });
         }
       })
-      .catch((error) => this.setState({ error }))
-      .finally(() => this.setState({ isLoading: false }));
+      .catch((error) => setError(error))
+      .finally(() => setIsLoading(false));
   };
 
-  onChangeQuery = (query) => {
+  const onChangeQuery = (query) => {
     console.log("App ~ query: ", query);
-    this.setState({
-      searchQuery: query,
-      currentPage: 1,
-      isLoadMore: false,
-      images: [],
-      error: null,
-    });
+
+    setSearchQuery(query);
+    setCurrentPage(1);
+    setIsLoadMore(false);
+    setImages([]);
+    setError(null);
   };
 
-  onLoadMore = () => {
-    this.setState({ isLoadMore: true });
-    this.fetchImages();
+  const onLoadMore = () => {
+    setIsLoadMore(true);
+    fetchImages();
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  showLargeImage = ({ largeImageURL }) => {
+  const showLargeImage = ({ largeImageURL }) => {
     console.log("App ~ url", largeImageURL);
 
-    this.setState({
-      largeImageURL: largeImageURL,
-      showModal: !this.state.showModal,
-    });
+    setLargeImageURL(largeImageURL);
+    setShowModal(!showModal);
   };
 
-  render() {
-    const { images, isLoading, totalImages, showModal, largeImageURL, error } =
-      this.state;
-    const diffCurrentLoadImages = totalImages - images.length;
-    const isShowLoadMore =
-      images.length > 0 && diffCurrentLoadImages > 0 && !isLoading;
+  const diffCurrentLoadImages = totalImages - images.length;
+  const isShowLoadMore =
+    images.length > 0 && diffCurrentLoadImages > 0 && !isLoading;
 
-    return (
-      <Container>
-        <Searchbar onSubmit={this.onChangeQuery} />
-        {error && <p>{error}</p>}
-        {images.length > 0 && (
-          <ImageGallery showLargeImage={this.showLargeImage} images={images} />
-        )}
+  return (
+    <Container>
+      <Searchbar onSubmit={onChangeQuery} />
+      {error && <p>{error}</p>}
+      {images.length > 0 && (
+        <ImageGallery showLargeImage={showLargeImage} images={images} />
+      )}
 
-        {isLoading && <Loader />}
+      {isLoading && <Loader />}
 
-        {isShowLoadMore && <Button onLoadMore={this.onLoadMore} />}
+      {isShowLoadMore && <Button onLoadMore={onLoadMore} />}
 
-        {/* <Modal onClose={this.toggleModal}>
+      {/* <Modal onClose={toggleModal}>
                     <p>MODAL</p>
                 </Modal> */}
 
-        {showModal && (
-          <Modal
-            largeImageURL={largeImageURL}
-            onClose={this.toggleModal}
-          ></Modal>
-        )}
-      </Container>
-    );
-  }
+      {showModal && (
+        <Modal largeImageURL={largeImageURL} onClose={toggleModal}></Modal>
+      )}
+    </Container>
+  );
 }
-
-// export default App;

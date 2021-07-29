@@ -10,15 +10,15 @@ const ImageGalleryItem = ({
   webformatURL,
   onClick,
 }) => {
-  console.log("onlickImage ~ onClick: ", onClick);
+  // console.log("onlickImage ~ onClick: ", onClick);
 
   const onClickImage = (e) => {
-    console.log("onlickImage ~ e: ", largeImageURL);
+    // console.log("onlickImage ~ e: ", largeImageURL);
     onClick({ largeImageURL });
   };
 
   return (
-    <li key={id} className={style.image_gallery_item}>
+    <li key={id.toString()} className={style.image_gallery_item}>
       <img
         src={webformatURL}
         alt={user}
