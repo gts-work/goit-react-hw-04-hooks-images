@@ -23,7 +23,11 @@ export default function App() {
   useEffect(() => {
     console.log("useEffect ~ useEffect: ", searchQuery);
 
-    if (searchQuery) fetchImages();
+    if (!searchQuery) {
+      return;
+    }
+
+    fetchImages();
   }, [searchQuery]);
 
   const fetchImages = () => {
