@@ -28,6 +28,7 @@ export default function App() {
     }
 
     fetchImages();
+    setIsLoadMore(true);
   }, [searchQuery]);
 
   const fetchImages = () => {
